@@ -3,6 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Centralized padding and margin */
+:root {
+    --padding: 1.3rem;
+    --margin: 1rem;
+    
+} 
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -44,7 +51,6 @@
 }
 
 /* For Default Theme */
-
 
 :root {
   --radius: 0.625rem;
@@ -255,7 +261,6 @@
   --sidebar-ring: oklch(0.488 0.243 264.376);
 } */
 
-
 /* For Yellow Theme */
 /* 
 :root {
@@ -401,6 +406,7 @@
 }
 
 */
+
 
 @layer base {
   * {
