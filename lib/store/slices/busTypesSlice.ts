@@ -41,8 +41,8 @@ export const createBusTypesSlice: StateCreator<
                 console.warn("⚠️ API Warning:", res.message);
                 set({ error: res.message });
             }
-        } catch (err: any) {
-            set({ error: err.message });
+        } catch (err: unknown) {
+            set({ error: err instanceof Error ? err.message : "Unknown error" });
         } finally {
             set({ loading: false });
         }
@@ -59,8 +59,8 @@ export const createBusTypesSlice: StateCreator<
             } else {
                 set({ error: res.message });
             }
-        } catch (err: any) {
-            set({ error: err.message });
+        } catch (err: unknown) {
+            set({ error: err instanceof Error ? err.message : "Unknown error" });
         } finally {
             set({ loading: false });
         }
