@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Upload, Printer, Plus } from "lucide-react";
+import { Upload, Printer } from "lucide-react";
 
 import { SearchInput } from "@/components/shared/search-input";
 import { PaginationBar } from "@/components/shared/pagination-bar";
@@ -21,10 +21,12 @@ import {
     useRoutesData,
     useRoutesLoading,
     useFetchRoutes,
+    useAddRoute,
+    useUpdateRoute,
 } from "@/lib/store/selectors/useRoutes";
+import { EntityCreateDialog } from "@/app/configurations/components/EntityCreateDialog";
 
 export default function BusRoutesPage() {
-    const router = useRouter();
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [limit] = useState(5);
@@ -33,21 +35,43 @@ export default function BusRoutesPage() {
     const loading = useRoutesLoading();
 
     const fetchRoutes = useFetchRoutes();
+    const addRoute = useAddRoute();
+    const updateRoute = useUpdateRoute();
 
     useEffect(() => {
         fetchRoutes({ search, page, limit, include_origin: true, include_destination: true });
     }, [search, page]);
 
+    const handleCreate = async (data: any) => {
+        await addRoute(data);
+        await fetchRoutes({ search, page, limit });
+    };
+
+    const handleUpdate = async (id: number, data: any) => {
+        await updateRoute({ ...data, id });
+        await fetchRoutes({ search, page, limit });
+    };
+
     return (
         <div className={cn("p-[var(--padding)]", "space-y-6")}>
-            {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h1 className="text-2xl font-semibold">Bus Routes</h1>
                 <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => router.push("/routes/new-route")}>
-                        <Plus className="mr-2 size-4" />
-                        Create Route
-                    </Button>
+                    <EntityCreateDialog
+                        triggerLabel="+ Create Route"
+                        dialogTitle="Create Route"
+                        fields={[
+                            { name: "referenceNo", label: "Reference No" },
+                            { name: "busId", label: "Bus ID" },
+                            { name: "startingPoint", label: "Origin Point ID" },
+                            { name: "dropingPoint", label: "Destination Point ID" },
+                            { name: "scheduleDate", label: "Schedule Date" },
+                            { name: "startTime", label: "Start Time" },
+                            { name: "endTime", label: "End Time" },
+                        ]}
+                        onSubmit={handleCreate}
+                    />
+
                     <Button variant="secondary">
                         <Upload className="mr-2 size-4" />
                         Import
@@ -59,14 +83,12 @@ export default function BusRoutesPage() {
                 </div>
             </div>
 
-            {/* Search Bar */}
             <SearchInput
                 placeholder="Search routes..."
                 value={search}
                 onChange={setSearch}
             />
 
-            {/* Table */}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -87,7 +109,17 @@ export default function BusRoutesPage() {
                                 <TableCell>{route.scheduleDate}</TableCell>
                                 <TableCell className="text-right">
                                     <TableActionsMenu
-                                        onEdit={() => router.push(`/routes/${route.id}`)}
+                                        onEdit={() =>
+                                            handleUpdate(route.id, {
+                                                referenceNo: route.referenceNo,
+                                                busId: route.busId,
+                                                startingPoint: route.startingPoint,
+                                                dropingPoint: route.dropingPoint,
+                                                scheduleDate: route.scheduleDate,
+                                                startTime: route.startTime,
+                                                endTime: route.endTime,
+                                            })
+                                        }
                                         onDelete={() => alert("Delete functionality not implemented")}
                                     />
                                 </TableCell>
@@ -97,12 +129,12 @@ export default function BusRoutesPage() {
                 </Table>
             </div>
 
-            {/* Pagination */}
             <PaginationBar
                 onPrevious={() => setPage((prev) => Math.max(prev - 1, 1))}
                 onNext={() => setPage((prev) => prev + 1)}
-            // page={page}
-            // total={total}
+            // page={page || 1}
+
+            // total={1}
             // limit={limit}
             />
         </div>

@@ -34,7 +34,7 @@ export function NavUser() {
   const user = {
     name: "Admin @ RMS",
     email: "user1@gmail.com",
-    avatar: "globe.svg",
+    avatar: "next.svg",
   };
 
   const { isMobile } = useSidebar()
