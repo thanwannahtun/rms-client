@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Route Management System (RMS)
 
-## Getting Started
+This is a **Route Management System** built with [Next.js](https://nextjs.org), [Zustand](https://github.com/pmndrs/zustand), and modern TypeScript-based design patterns.
 
-First, run the development server:
+It provides a fully functional admin panel for managing bus routes, types, amenities, drivers, points, and assignments — all connected via RESTful APIs.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🚀 Features
+
+- 🚌 **Bus Management** – Create, edit, and assign drivers and types to buses
+- 🎯 **Route Management** – CRUD for bus routes with schedule, timing, and routing info
+- 🔀 **Route Lines Support** – Nested line management between bus points
+- 📍 **Bus Points** – Manage origin, destination, and route stops
+- 👨‍✈️ **Drivers Panel** – Track and manage driver data
+- 🛠️ **Amenities Management** – Tag buses with available onboard features
+- 🔎 **Search, Filter, Pagination** – For all major entities
+- ⚙️ **Zustand Store (Slice Pattern)** – Global state for each feature module
+- 🧠 **Reusable Components** – Tables, dropdowns, forms, dialogs, pagination, etc.
+
+---
+
+## 🛠 Tech Stack
+
+- **Next.js 15+ (App Router)**
+- **TypeScript**
+- **Zustand (slice pattern)**
+- **TailwindCSS**
+- **Lucide Icons**
+- **REST API Integration (via safeGet, safePost, safePut)**
+
+---
+
+## 🧪 Project Structure (Modular)
+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+/app
+/routes → Route listing, creation, editing
+/buses → Buses management
+/drivers → Driver CRUD UI
+/configurations → Shared entities (bus-types, amenities, points)
+/components → Reusable form & table components
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+/lib
+/store
+/slices → Zustand store slices (bus, route, driver, etc.)
+/selectors → Hook-style selectors for UI consumption
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+/lib/api → safeGet, safePost, safePut wrappers
+/components/ui → UI primitives
 
-## Learn More
+```
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+All API calls follow this structure:
+```
+{
+  "success": true,
+  "message": "Description",
+  "data": [/* your payload */]
+}
+```
 
-## Deploy on Vercel
+For paginated resources:
+```
+{
+  "data": [...],
+  "total": 12,
+  "currentPage": 1,
+  "lastPage": 3,
+  ...
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+  export interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    currentPage: number;
+    previousPage: number | null;
+    nextPage: number | null;
+    lastPage: number;
+    countPerPage: number;
+    success: boolean;
+    message: string;
+}
+}
+```
+🔧 Environment Setup
+```
+NEXT_PUBLIC_API_BASE=http://localhost:3300/api/v1
+```

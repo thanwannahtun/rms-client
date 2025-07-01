@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {  Upload, Printer } from "lucide-react";
+import { Upload, Printer } from "lucide-react";
 
 import { SearchInput } from "@/components/shared/search-input";
 import { FilterDropdown } from "@/components/shared/filter-dropdown";
 import { PaginationBar } from "@/components/shared/pagination-bar";
 import { TableActionsMenu } from "@/components/shared/table-actions-menu";
-
 import {
   Table,
   TableBody,
@@ -20,46 +19,39 @@ import {
 import { cn } from "@/lib/utils";
 import { EntityCreateDialog } from "../components/EntityCreateDialog";
 
-interface BusAmenity {
-  id: number;
-  name: string;
-  type: "comfort" | "entertainment" | "safety";
-  status: "enabled" | "disabled";
-}
-
-const mockAmenities: BusAmenity[] = [
-  { id: 1, name: "Air Conditioning", type: "comfort", status: "enabled" },
-  { id: 2, name: "Wi-Fi", type: "entertainment", status: "enabled" },
-  { id: 3, name: "Reclining Seats", type: "comfort", status: "enabled" },
-  { id: 4, name: "USB Charging", type: "comfort", status: "disabled" },
-  { id: 5, name: "CCTV", type: "safety", status: "enabled" },
-  { id: 6, name: "TV Screens", type: "entertainment", status: "disabled" },
-  { id: 7, name: "Fire Extinguisher", type: "safety", status: "enabled" },
-  { id: 8, name: "Toilet", type: "comfort", status: "enabled" },
-  { id: 9, name: "Live GPS Tracking", type: "safety", status: "disabled" },
-];
+import {
+  useAddAmenity,
+  useAmenitiesData,
+  useAmenitiesError,
+  useAmenitiesLoading,
+  useFetchAmenities,
+  useUpdateAmenity,
+} from "@/lib/store/selectors/useAmenities";
 
 export default function BusAmenitiesPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [selected, setSelected] = useState<number[]>([]);
 
-  const filteredData = mockAmenities.filter((amenity) => {
-    const matchesSearch = amenity.name.toLowerCase().includes(search.toLowerCase());
-    const matchesType = typeFilter ? amenity.type === typeFilter : true;
-    const matchesStatus = statusFilter ? amenity.status === statusFilter : true;
-    return matchesSearch && matchesType && matchesStatus;
-  });
+  const fetchAmenities = useFetchAmenities();
+  const amenities = useAmenitiesData();
+  const isLoading = useAmenitiesLoading();
+  const error = useAmenitiesError();
+  const addAmenity = useAddAmenity();
+  const updateAmenity = useUpdateAmenity();
 
-  const isAllSelected = selected.length === filteredData.length;
+  // Filter + Search Logic
+  const filteredAmenities = useMemo(() => {
+    return amenities.filter((a) => {
+      const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase());
+      return matchesSearch;
+    });
+  }, [amenities, search]);
+
+  const isAllSelected = selected.length === filteredAmenities.length;
 
   const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelected([]);
-    } else {
-      setSelected(filteredData.map((a) => a.id));
-    }
+    setSelected(isAllSelected ? [] : filteredAmenities.map((a) => a.id!));
   };
 
   const toggleSelection = (id: number) => {
@@ -68,27 +60,24 @@ export default function BusAmenitiesPage() {
     );
   };
 
+  useEffect(() => {
+    fetchAmenities();
+  }, [fetchAmenities]);
+
   return (
-    <div className={cn(`p-[var(--padding)]`, "space-y-6")}>
+    <div className={cn("p-[var(--padding)] space-y-6")}>
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold">Bus Amenities</h1>
         <div className="flex flex-wrap gap-2">
-          {/* <Button>
-            <Plus className="mr-2 size-4" />
-            Create
-          </Button> */}
           <EntityCreateDialog
             triggerLabel="+ Create Amenity"
             dialogTitle="Create Bus Amenity"
-            fields={[
-              { name: "name", label: "Amenity Name" },
-            ]}
+            fields={[{ name: "name", label: "Amenity Name" }]}
             onSubmit={async (data) => {
-              // await fetch("/api/bus-amenities", { method: "POST", body: JSON.stringify(data) });
+              await addAmenity({ id: null, name: data.name });
             }}
           />
-
           <Button variant="secondary">
             <Upload className="mr-2 size-4" />
             Import
@@ -107,18 +96,11 @@ export default function BusAmenitiesPage() {
           value={search}
           onChange={setSearch}
         />
-        <div className="flex gap-2">
-          <FilterDropdown
-            label={typeFilter ? `Type: ${typeFilter}` : "Amenity Type"}
-            filters={["comfort", "entertainment", "safety"]}
-            onSelect={(val) => setTypeFilter(val)}
-          />
-          <FilterDropdown
-            label={statusFilter ? `Status: ${statusFilter}` : "Availability"}
-            filters={["enabled", "disabled"]}
-            onSelect={(val) => setStatusFilter(val)}
-          />
-        </div>
+        <FilterDropdown
+          label={typeFilter ? `Type: ${typeFilter}` : "Amenity Type"}
+          filters={["comfort", "entertainment", "safety"]}
+          onSelect={setTypeFilter}
+        />
       </div>
 
       {/* Table */}
@@ -134,37 +116,43 @@ export default function BusAmenitiesPage() {
                 />
               </TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.map((amenity) => (
+            {filteredAmenities.map((amenity) => (
               <TableRow key={amenity.id}>
                 <TableCell>
                   <input
                     type="checkbox"
-                    checked={selected.includes(amenity.id)}
-                    onChange={() => toggleSelection(amenity.id)}
+                    checked={selected.includes(amenity.id!)}
+                    onChange={() => toggleSelection(amenity.id!)}
                   />
                 </TableCell>
                 <TableCell>{amenity.name}</TableCell>
-                <TableCell className="capitalize">{amenity.type}</TableCell>
-                <TableCell className="capitalize">{amenity.status}</TableCell>
                 <TableCell className="text-right">
-                  <TableActionsMenu
-                    onEdit={() => alert(`Edit ${amenity.name}`)}
-                    onDelete={() => alert(`Delete ${amenity.name}`)}
+                  <EntityCreateDialog
+                    triggerLabel="Edit"
+                    dialogTitle="Edit Bus Amenity"
+                    initialData={{ name: amenity.name }}
+                    fields={[{ name: "name", label: "Amenity Name" }]}
+                    onSubmit={async (data) => {
+                      await updateAmenity({ id: amenity.id, name: data.name });
+                    }}
                   />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        {isLoading && <div className="p-4 text-muted">Loading amenities...</div>}
+        {error && <div className="p-4 text-red-600">Error: {error}</div>}
+        {!isLoading && filteredAmenities.length === 0 && (
+          <div className="p-4 text-muted">No amenities found.</div>
+        )}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination (to be implemented) */}
       <PaginationBar
         onPrevious={() => alert("Previous")}
         onNext={() => alert("Next")}

@@ -1,41 +1,38 @@
 import type { StateCreator } from "zustand";
 import { safeGet, safePost, safePut } from "@/lib/api";
 
-export interface BusType {
+export interface BusAmenity {
     id: number | null;
     name: string;
-    rows: number;
-    capacity: number;
-    layout: string;
 }
 
-export interface BusTypesSlice {
-    busTypes: BusType[];
+export interface BusAmenitiesSlice {
+    amenities: BusAmenity[];
     loading: boolean;
     error: string | null;
-    fetchBusTypes: () => Promise<void>;
-    addBusType: (bt: BusType) => Promise<void>;
-    updateBusType: (bt: BusType) => Promise<void>;
+    fetchAmenities: () => Promise<void>;
+    addAmenity: (bt: BusAmenity) => Promise<void>;
+    updateAmenity: (bt: BusAmenity) => Promise<void>;
 }
 
-export const createBusTypesSlice: StateCreator<
-    BusTypesSlice,
+export const createBusAmenitiesSlice: StateCreator<
+    BusAmenitiesSlice,
     [],
     [],
-    BusTypesSlice
+    BusAmenitiesSlice
 > = (set, get) => ({
-    busTypes: [],
+    amenities: [],
     loading: false,
     error: null,
 
-    fetchBusTypes: async () => {
-        if(get().busTypes.length > 0) return;
+    fetchAmenities: async () => {
+        if (get().amenities.length > 0) return;
         set({ loading: true, error: null });
         try {
-            const res = await safeGet<BusType[]>("/bus_types");
+            const res = await safeGet<BusAmenity[]>("/amenities");
 
             if (res.success) {
-                set({ busTypes: res.data });
+                set({ amenities: res.data });
             } else {
                 set({ error: res.message });
             }
@@ -46,14 +43,13 @@ export const createBusTypesSlice: StateCreator<
         }
     },
 
-    addBusType: async (bt) => {
+    addAmenity: async (bt) => {
         set({ loading: true, error: null });
         try {
 
-            const res = await safePost<BusType>("/bus_types", bt);
+            const res = await safePost<BusAmenity>("/amenities", bt);
             if (res.success) {
-                console.log("✅ Bus Type added:", res.data);
-                set({ busTypes: [...get().busTypes, res.data] });
+                set({ amenities: [...get().amenities, res.data] });
             } else {
                 set({ error: res.message });
             }
@@ -64,13 +60,12 @@ export const createBusTypesSlice: StateCreator<
         }
     },
 
-    updateBusType: async (bt) => {
+    updateAmenity: async (bt: BusAmenity) => {
         set({ loading: true, error: null });
         try {
-            const res = await safePut<BusType>(`/bus_types/${bt.id}`, bt);
+            const res = await safePut<BusAmenity>(`/amenities/${bt.id}`, bt);
             if (res.success) {
-                console.log("✅ Bus Type updated:", res.data);
-                set({ busTypes: get().busTypes.map((bt) => (bt.id === res.data.id ? res.data : bt)) });
+                set({ amenities: get().amenities.map((bt) => (bt.id === res.data.id ? res.data : bt)) });
             } else {
                 set({ error: res.message });
             }

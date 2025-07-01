@@ -15,19 +15,21 @@ export const api: AxiosInstance = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
-    withCredentials: true,
+
+    // withCredentials: true,
 });
 
 /**
  * Attach access token from localStorage if available (client-side only)
  */
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    /// For CORS issue temp disabled
+    // For CORS issue temp disabled
     // if (typeof window !== "undefined") {
-    //     const token = localStorage.getItem("accessToken");
-    //     if (token) {
-    //         config.headers["Authorization"] = `Bearer ${token}`;
-    //     }
+    // const token = localStorage.getItem("accessToken");
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlclR5cGUiOiJBZG1pblVzZXIiLCJpYXQiOjE3NTExNzE4NjQsImV4cCI6MTc1Mzc2Mzg2NH0.J5w1CYhPRKd8qJPM19bCANK8i634fdSwe8v-B_XSPfg";
+    if (token) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+    }
     // }
     return config;
 }, (error) => {
@@ -64,10 +66,25 @@ export function extractAxiosError(error: unknown): string {
 }
 
 
+
+
 interface ApiResponse<T> {
     success: boolean;
     message: string;
     data: T;
+}
+
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    currentPage: number;
+    previousPage: number | null;
+    nextPage: number | null;
+    lastPage: number;
+    countPerPage: number;
+    success: boolean;
+    message: string;
 }
 
 export async function safeGet<T>(
@@ -88,6 +105,31 @@ export async function safeGet<T>(
     }
 }
 
+export async function safeGetPagination<T>(
+    url: string,
+    config?: AxiosRequestConfig
+): Promise<PaginatedResponse<T>> {
+    try {
+        const response = await api.get<PaginatedResponse<T>>(url, config);
+        return response.data;
+    } catch (err) {
+        const message = extractAxiosError(err);
+        showApiError(message);
+        return {
+            success: false,
+            message,
+            data: [] as unknown as T[],
+            total: 0,
+            currentPage: 0,
+            previousPage: null,
+            nextPage: null,
+            lastPage: 0,
+            countPerPage: 0,
+            // data: null as unknown as T, // `data` must still exist for consistent shape
+        };
+    }
+}
+
 
 /**
  * Wrapper for POST requests with safe error handling
@@ -95,6 +137,21 @@ export async function safeGet<T>(
 export async function safePost<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
         const response = await api.post<ApiResponse<T>>(url, data, config);
+        return response.data;
+    } catch (err) {
+        const message = extractAxiosError(err);
+        showApiError(message);
+        return {
+            success: false,
+            message,
+            data: null as unknown as T,
+        };
+    }
+}
+
+export async function safePut<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    try {
+        const response = await api.put<ApiResponse<T>>(url, data, config);
         return response.data;
     } catch (err) {
         const message = extractAxiosError(err);

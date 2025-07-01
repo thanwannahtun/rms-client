@@ -6,7 +6,6 @@ import { Plus, Upload, Printer } from "lucide-react";
 import { SearchInput } from "@/components/shared/search-input";
 import { FilterDropdown } from "@/components/shared/filter-dropdown";
 import { PaginationBar } from "@/components/shared/pagination-bar";
-import { TableActionsMenu } from "@/components/shared/table-actions-menu";
 
 import {
     Table, TableHeader, TableRow, TableHead,
@@ -21,6 +20,7 @@ import {
     useAddBusType,
 } from "@/lib/store/selectors/useBusTypes";
 import { useRouter } from "next/navigation";
+import { DetailButton } from "@/components/shared/detail-button";
 
 export default function BusTypesPage() {
 
@@ -32,19 +32,12 @@ export default function BusTypesPage() {
     const loading = useBusTypesLoading();
     const error = useBusTypesError();
     const fetchBusTypes = useFetchBusTypes();
-    const addBusType = useAddBusType();
 
     const [search, setSearch] = useState("");
     const [capacityFilter, setCapacityFilter] = useState<string | null>(null);
     const [selected, setSelected] = useState<number[]>([]);
 
     useEffect(() => {
-        console.log("🚍 busTypes", busTypes);
-        console.log("🚍 type:", typeof busTypes);
-        console.log("🚍 isArray:", Array.isArray(busTypes));
-        console.log("🚍 keys:", Object.keys(busTypes));
-
-
         fetchBusTypes();
     }, [fetchBusTypes]);
 
@@ -76,23 +69,6 @@ export default function BusTypesPage() {
                         <Plus className="mr-2" />
                         Create
                     </Button>
-                    {/* <Button onClick={() => addBusType({ id: 0, name: "New Type", capacity: 20 })}>
-                        <Plus className="mr-2" />
-                        Create
-                    </Button> */}
-                    {/* <EntityCreateDialog
-                        triggerLabel="+ Create Bus Type"
-                        dialogTitle="Create Bus Type"
-                        fields={[
-                            { name: "name", label: "Bus Type Name" },
-                            { name: "seatCount", label: "Seat Count", type: "number" },
-                        ]}
-                        onSubmit={async (data) => {
-                            // addBusType(data);
-                            // await fetch("/api/bus-types", { method: "POST", body: JSON.stringify(data) });
-                        }}
-                    /> */}
-
                     <Button variant="secondary">
                         <Upload className="mr-2" />
                         Import
@@ -127,6 +103,8 @@ export default function BusTypesPage() {
                                 </TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Capacity</TableHead>
+                                <TableHead>Rows</TableHead>
+                                <TableHead>Layout</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -142,11 +120,10 @@ export default function BusTypesPage() {
                                     </TableCell>
                                     <TableCell>{bt.name}</TableCell>
                                     <TableCell>{bt.capacity}</TableCell>
+                                    <TableCell>{bt.rows}</TableCell>
+                                    <TableCell>{bt.layout}</TableCell>
                                     <TableCell className="text-right">
-                                        <TableActionsMenu
-                                            onEdit={() => alert("Edit " + bt.id)}
-                                            onDelete={() => alert("Delete " + bt.id)}
-                                        />
+                                        <DetailButton onDetail={() => router.push(`/configurations/bus-types/${bt.id}`)} />
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -158,3 +135,5 @@ export default function BusTypesPage() {
         </div>
     );
 }
+
+

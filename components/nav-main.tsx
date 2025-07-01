@@ -45,6 +45,10 @@ export function NavMain() {
       title: "Analytics",
       url: "#",
       icon: BarChartIcon,
+    }, {
+      title: "Admin (Roles-Permissions)",
+      url: "/admin/roles",
+      icon: UsersIcon,
     },
 
     {

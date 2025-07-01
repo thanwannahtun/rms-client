@@ -1,35 +1,64 @@
 "use client";
 
-import { AutoSiteHeader } from '@/components/layout/auto-site-header';
+import Link from "next/link";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useBusesData, useBusesError, useBusesLoading, useFetchBuses } from "@/lib/store/selectors/useBuses";
 
+export default function BusListPage() {
+    const buses = useBusesData();
+    const fetchBuses = useFetchBuses();
+    const isLoading = useBusesLoading();
+    const error = useBusesError();
 
-export default function BusesDashboard() {
+    useEffect(() => {
+        fetchBuses();
+    }, [fetchBuses]);
 
     return (
-        <AutoSiteHeader>
 
-            <div className="flex flex-2 flex-col">
-                <div className="@container/main flex flex-2 flex-col gap-2">
-                    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                        <h1>Buses Management Page Here</h1>
-
-                        <li>Buses List</li>
-                        <li>Register Buses Or Add Buses</li>
-                        <li>Edit Buses</li>
-                        <li>Delete Buses</li>
-                        <li>Buses Details</li>
-                        <li>Buses Search</li>
-
-
-                        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-
-                            <h1>Buses Operations</h1>
-
-                            <li> ? ? ?</li>
-                        </div>
-                    </div>
-                </div>
+        <div className="p-6 space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold">Bus Management</h1>
+                <Button asChild>
+                    <Link href="/buses/create">+ Add New Bus</Link>
+                </Button>
             </div>
-        </AutoSiteHeader>
-    )
+
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Plate Number</TableHead>
+                            <TableHead>Bus Type</TableHead>
+                            <TableHead>Driver</TableHead>
+                            <TableHead>Assignment Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {buses.map((bus) => (
+                            <TableRow key={bus.id}>
+                                <TableCell>{bus.plateNumber}</TableCell>
+                                <TableCell>{bus.busType?.name}</TableCell>
+                                <TableCell>{bus.driver?.name}</TableCell>
+                                <TableCell>{new Date(bus.assignmentDate).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right">
+                                    <Link href={`/buses/${bus.id}/`} className="text-blue-500 hover:underline">
+                                        Edit
+                                    </Link>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+
+                {isLoading && <div className="p-4">Loading buses...</div>}
+                {error && <div className="p-4 text-red-500">Error: {error}</div>}
+                {!isLoading && buses.length === 0 && <div className="p-4 text-gray-500">No buses found.</div>}
+            </div>
+        </div>
+
+    );
 }

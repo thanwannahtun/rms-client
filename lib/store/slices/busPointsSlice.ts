@@ -1,41 +1,38 @@
 import type { StateCreator } from "zustand";
 import { safeGet, safePost, safePut } from "@/lib/api";
 
-export interface BusType {
+export interface BusPoint {
     id: number | null;
     name: string;
-    rows: number;
-    capacity: number;
-    layout: string;
 }
 
-export interface BusTypesSlice {
-    busTypes: BusType[];
+export interface BusPointsSlice {
+    busPoints: BusPoint[];
     loading: boolean;
     error: string | null;
-    fetchBusTypes: () => Promise<void>;
-    addBusType: (bt: BusType) => Promise<void>;
-    updateBusType: (bt: BusType) => Promise<void>;
+    fetchBusPoints: () => Promise<void>;
+    addBusPoint: (bt: BusPoint) => Promise<void>;
+    updateBusPoint: (bt: BusPoint) => Promise<void>;
 }
 
-export const createBusTypesSlice: StateCreator<
-    BusTypesSlice,
+export const createBusPointsSlice: StateCreator<
+    BusPointsSlice,
     [],
     [],
-    BusTypesSlice
+    BusPointsSlice
 > = (set, get) => ({
-    busTypes: [],
+    busPoints: [],
     loading: false,
     error: null,
 
-    fetchBusTypes: async () => {
-        if(get().busTypes.length > 0) return;
+    fetchBusPoints: async () => {
+        if (get().busPoints.length > 0) return;
         set({ loading: true, error: null });
         try {
-            const res = await safeGet<BusType[]>("/bus_types");
+            const res = await safeGet<BusPoint[]>("/bus_points");
 
             if (res.success) {
-                set({ busTypes: res.data });
+                set({ busPoints: res.data });
             } else {
                 set({ error: res.message });
             }
@@ -46,14 +43,13 @@ export const createBusTypesSlice: StateCreator<
         }
     },
 
-    addBusType: async (bt) => {
+    addBusPoint: async (bt) => {
         set({ loading: true, error: null });
         try {
 
-            const res = await safePost<BusType>("/bus_types", bt);
+            const res = await safePost<BusPoint>("/bus_points", bt);
             if (res.success) {
-                console.log("✅ Bus Type added:", res.data);
-                set({ busTypes: [...get().busTypes, res.data] });
+                set({ busPoints: [...get().busPoints, res.data] });
             } else {
                 set({ error: res.message });
             }
@@ -64,13 +60,12 @@ export const createBusTypesSlice: StateCreator<
         }
     },
 
-    updateBusType: async (bt) => {
+    updateBusPoint: async (bt: BusPoint) => {
         set({ loading: true, error: null });
         try {
-            const res = await safePut<BusType>(`/bus_types/${bt.id}`, bt);
+            const res = await safePut<BusPoint>(`/bus_points/${bt.id}`, bt);
             if (res.success) {
-                console.log("✅ Bus Type updated:", res.data);
-                set({ busTypes: get().busTypes.map((bt) => (bt.id === res.data.id ? res.data : bt)) });
+                set({ busPoints: get().busPoints.map((bt) => (bt.id === res.data.id ? res.data : bt)) });
             } else {
                 set({ error: res.message });
             }
