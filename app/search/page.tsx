@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -86,9 +88,9 @@ export default function BusRoutesPage() {
                                 <TableCell>{route.referenceNo}</TableCell>
                                 <TableCell>{route.origin?.name}</TableCell>
                                 <TableCell>{route.destination?.name}</TableCell>
-                                <TableCell>{route.scheduleDate ? route.scheduleDate : "-"}</TableCell>
-                                <TableCell>{route.startTime ? formatTime(route.startTime) : "-"}</TableCell>
-                                <TableCell>{route.endTime ? formatTime(route.endTime) : "-"}</TableCell>
+                                <TableCell>{route.scheduleDate}</TableCell>
+                                <TableCell>{formatTime(route.startTime)}</TableCell>
+                                <TableCell>{formatTime(route.endTime)}</TableCell>
                                 <TableCell className="text-right">
                                     <TableActionsMenu
                                         onEdit={() => router.push(`/routes/${route.id}`)}

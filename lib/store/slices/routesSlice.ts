@@ -43,6 +43,7 @@ export interface RouteSlice {
     loading: boolean;
     error: string | null;
     fetchRoutes: (query?: Record<string, string | number | boolean>) => Promise<void>;
+    searchRoutes: (query?: Record<string, string | number | boolean>) => Promise<void>;
     addRoute: (route: Partial<Route>) => Promise<void>;
     updateRoute: (route: Route) => Promise<void>;
 }
@@ -73,6 +74,32 @@ export const createRouteSlice: StateCreator<
             const searchParams = new URLSearchParams(query as any).toString();
 
             const res = await safeGetPagination<Route>(`/routes?${searchParams}`);
+            if (res.success) {
+                set({
+                    routes: res.data, pagination: {
+                        total: res.total,
+                        currentPage: res.currentPage,
+                        previousPage: res.previousPage,
+                        nextPage: res.nextPage,
+                        lastPage: res.lastPage,
+                        countPerPage: res.countPerPage,
+                    }
+                });
+            } else {
+                set({ error: res.message });
+            }
+        } catch (err: unknown) {
+            set({ error: err instanceof Error ? err.message : "Unknown error" });
+        } finally {
+            set({ loading: false });
+        }
+    },
+    searchRoutes: async (query = {}) => {
+        set({ loading: true, error: null });
+        try {
+            const searchParams = new URLSearchParams(query as any).toString();
+
+            const res = await safeGetPagination<Route>(`/routes/search?${searchParams}`);
             if (res.success) {
                 set({
                     routes: res.data, pagination: {
